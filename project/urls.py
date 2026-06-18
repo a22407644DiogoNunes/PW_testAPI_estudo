@@ -17,7 +17,9 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
+from cursos.api import api as cursos_api
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/", cursos_api.urls),
 ]
