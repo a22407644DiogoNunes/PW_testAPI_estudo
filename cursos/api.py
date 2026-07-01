@@ -12,6 +12,16 @@ api = NinjaAPI(
 
 #----------------Listar---------------------#
 
+@api.get(
+        'aluno/',
+        response=List[AlunoOut],
+        tags=["Aluno"],
+        description="Lista todos os alunos"
+)
+def lista_aluno(request):
+    aluno = Aluno.objects.all()
+    return aluno
+
 @api.get('professor/', response=List[ProfessorOut], tags=["Professor"], description="Lista todos os professores")
 def lista_professor(request, sort: str = None, nome: str = None):
     professor = Professor.objects.all()
@@ -24,15 +34,28 @@ def lista_professor(request, sort: str = None, nome: str = None):
 
     return professor
 
-@api.get('aluno/', response=List[AlunoOut], tags=["Aluno"], description="Lista todos os alunos")
-def lista_aluno(request):
-    return Aluno.objects.all()
-
 @api.get('curso/', response=List[CursoOut], tags=["Curso"], description="Lista todos os cursos")
 def lista_curso(request):
     return Curso.objects.all()
 
 #------------------Criar-------------------#
+
+@api.post(
+        "aluno/",
+        response={
+            200:AlunoOut,
+            400:ErrorSchema
+        },
+        tags=["Aluno"],
+        description="Cria Aluno"
+)
+def criar_aluno(request, data:AlunoIn):
+
+    if Aluno.objects.filter(numero=data.numero).exists():
+        return 400, {"mensagem":"numero de aluno já existente"}
+
+    aluno = Aluno.objects.create(**data.dict())
+    return 200, aluno
 
 @api.post(
     'professor/',
@@ -48,18 +71,6 @@ def criar_professor(request, data:ProfessorIn):
     
     professor = Professor.objects.create(**data.dict())
     return 200, professor
-
-@api.post(
-    'aluno/',
-    response={
-        200: AlunoOut,
-        400: ErrorSchema
-    },
-    tags=["Aluno"]
-)
-def criar_aluno(request, data:AlunoIn):
-    aluno = Aluno.objects.create(**data.dict())
-    return 200,aluno
 
 @api.post(
     'curso/',
@@ -83,6 +94,26 @@ def criar_curso(request, data:CursoIn):
 #---------------Substituir--------------#
 
 @api.put(
+        "aluno/{id}",
+        response={
+            200: AlunoOut,
+            400: ErrorSchema,
+            404: ErrorSchema,
+        },
+        tags=["Aluno"],
+        description="Atualizar dados do aluno"
+)
+def substituir_dados_aluno(request, id:int, data:AlunoIn):
+    aluno = get_object_or_404(Aluno, id=id)
+
+    for atributo, valor in data.dict().items():
+        setattr(aluno, atributo, valor)
+
+    aluno.save()
+
+    return 200, aluno
+
+@api.put(
     'professor/{id}',
     response={
         200: ProfessorOut,
@@ -102,25 +133,6 @@ def substituir_dados_professor(request, id:int, data:ProfessorIn):
     professor.save()
 
     return 200, professor
-
-@api.put(
-    "aluno/{id}",
-    response={
-        200:AlunoOut,
-        400:ErrorSchema,
-        404:ErrorSchema
-    },
-    tags=["Aluno"]
-)
-def substituir_dados_alunos(request, id:int, data:AlunoIn):
-    aluno = get_object_or_404(Aluno, id=id)
-
-    for atributo, valor in data.dict().items():
-        setattr(aluno, atributo, valor)
-
-    aluno.save()
-
-    return 200, aluno
 
 @api.put(
     "cursos/{id}",
@@ -147,6 +159,18 @@ def substituir_dados_curso(request, id:int, data:CursoIn):
 #-------------------Buscar---------------------#
 
 @api.get(
+        "aluno/{id}",
+        response={
+            200:AlunoOut,
+            404:ErrorSchema,
+        },
+        tags=["Aluno"]
+)
+def buscar_aluno(request, aluno_id:int):
+    aluno = get_object_or_404(Aluno, id = aluno_id)
+    return 200, aluno
+
+@api.get(
     "professor/{id}",
     response={
         200:ProfessorOut,
@@ -158,19 +182,6 @@ def buscar_professor(request,id:int):
     professor = get_object_or_404(Professor,id=id)
     
     return 200,professor
-
-@api.get(
-    "aluno/{id}",
-    response={
-        200:AlunoOut,
-        404:ErrorSchema
-    },
-    tags=["Aluno"]
-)
-def buscar_aluno(request,id:int):
-    aluno = get_object_or_404(Aluno,id=id)
-
-    return 200,aluno
 
 @api.get(
     "curso/{id}",
@@ -188,6 +199,21 @@ def buscar_curso(request,id:int):
 #----------------------Delete-------------#
 
 @api.delete(
+        "aluno/{id}",
+        response={
+            204: None,
+            404: ErrorSchema
+        },
+        tags=["Aluno"],
+        description="Apagar aluno da base de dados"
+)
+def apaga_aluno(request, id:int):
+    aluno = get_object_or_404(Aluno, id=id)
+    aluno.delete()
+
+    return 204, None
+
+@api.delete(
     "professor/{id}",
     response={
         204:None,
@@ -198,20 +224,6 @@ def buscar_curso(request,id:int):
 def apaga_professor(request, id:int):
     professor = get_object_or_404(Professor, id=id)
     professor.delete()
-
-    return 204,None
-
-@api.delete(
-    "aluno/{id}",
-    response={
-        204:None,
-        404:ErrorSchema
-    },
-    tags=["Aluno"]
-)
-def apaga_aluno(request, id:int):
-    aluno = get_object_or_404(Aluno,id=id)
-    aluno.delete()
 
     return 204,None
 
