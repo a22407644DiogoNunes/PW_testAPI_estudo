@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 from django.contrib import admin
-from .models import Treinador, Nadador, Estilo_de_Treino, Treino
+from .models import Treinador, Nadador, EstiloDeTreino, Treino
 
 @admin.register(Treinador)
 class TreinadorAdmin(admin.ModelAdmin):
@@ -16,7 +16,7 @@ class NadadorAdmin(admin.ModelAdmin):
     search_fields = ('nome',)
 
 
-@admin.register(Estilo_de_Treino)
+@admin.register(EstiloDeTreino)
 class EstiloDeTreinoAdmin(admin.ModelAdmin):
     list_display = ('nome',)
     search_fields = ('nome',)
